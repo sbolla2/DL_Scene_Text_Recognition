@@ -10,10 +10,6 @@ DATASETS = {
         "clean_directory": "Total-Text/Train",
         "noisy_directory": "Total-Text/Train_noisy",
     },
-    "TotalText_val": {
-        "clean_directory": "Total-Text/Val",
-        "noisy_directory": "Total-Text/Val_noisy",
-    },
     "TotalText_test": {
         "clean_directory": "Total-Text/Test",
         "noisy_low_directory": "Total-Text/Test_noisy_low",
@@ -54,7 +50,7 @@ def add_noise_to_image(image_path, kernel_size, gaussian_sigma, gaussian_noise_s
             kernel /= np.sum(kernel)
 
         blurred = cv2.filter2D(image, -1, kernel)
-    elif blur_type == "both":
+    else:
         blurred = cv2.GaussianBlur(image, kernel_size, gaussian_sigma)
         M = cv2.getRotationMatrix2D((motion_blur_length / 2, motion_blur_length / 2), motion_angle, 1)
 
@@ -68,8 +64,6 @@ def add_noise_to_image(image_path, kernel_size, gaussian_sigma, gaussian_noise_s
             kernel /= np.sum(kernel)
         
         blurred = cv2.filter2D(blurred, -1, kernel)
-    else:
-        blurred = image
 
     h, w = image.shape[:2]
     lr = cv2.resize(blurred, (max(1, w // 2), max(1, h // 2)), interpolation=cv2.INTER_AREA)
@@ -148,12 +142,12 @@ def process_dataset(clean_paths, noisy_directory, set_type, overwrite=True):
             jpeg_quality = np.random.randint(60, 81)
             which_blur = np.random.randint(0, 100)
 
-            if which_blur < 20:
-                blur = "none"
-            elif which_blur < 50:
+            if which_blur < 35:
                 blur = "motion"
-            elif which_blur < 80:
+            elif which_blur < 70:
                 blur = "gaussian"
+            else:
+                blur = "both"
 
         noisy_image = add_noise_to_image(clean_path, kernel_size, gaussian_sigma, gaussian_noise_std, blur, motion_blur_length, motion_angle)
         if noisy_image is not None:
@@ -165,14 +159,10 @@ def process_dataset(clean_paths, noisy_directory, set_type, overwrite=True):
 
 if __name__ == "__main__":
     totaltext_train_clean_paths, totaltext_train_noisy_directory = get_image_paths("TotalText_train")
-    totaltext_val_clean_paths, totaltext_val_noisy_directory = get_image_paths("TotalText_val")
     totaltext_test_clean_paths, totaltext_test_noisy_low_directory, totaltext_test_noisy_medium_directory, totaltext_test_noisy_high_directory = get_image_paths("TotalText_test")
 
     print("Processing TotalText Train Set...")
     process_dataset(totaltext_train_clean_paths, totaltext_train_noisy_directory, set_type="train")
-
-    print("Processing TotalText Validation Set...")
-    process_dataset(totaltext_val_clean_paths, totaltext_val_noisy_directory, set_type="medium")
 
     print("Processing TotalText Test Set...")
     process_dataset(totaltext_test_clean_paths, totaltext_test_noisy_low_directory, set_type="low")
@@ -181,8 +171,6 @@ if __name__ == "__main__":
     
     print("\nNumber of Clean TotalText Train Images:", len(totaltext_train_clean_paths))
     print("Number of Noisy TotalText Train Images:", len(os.listdir(totaltext_train_noisy_directory)))
-    print("\nNumber of Clean TotalText Validation Images:", len(totaltext_val_clean_paths))
-    print("Number of Noisy TotalText Validation Images:", len(os.listdir(totaltext_val_noisy_directory)))
     print("\nNumber of Clean TotalText Test Images:", len(totaltext_test_clean_paths))
     print("Number of Noisy TotalText Test Images of Low Noise:", len(os.listdir(totaltext_test_noisy_low_directory)))
     print("Number of Noisy TotalText Test Images of Medium Noise:", len(os.listdir(totaltext_test_noisy_medium_directory)))
