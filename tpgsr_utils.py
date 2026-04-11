@@ -168,12 +168,59 @@ def image_to_tpgsr_tensor(image_bgr, use_mask):
     return torch.from_numpy(np.ascontiguousarray(array)).float().unsqueeze(0)
 
 
+def _cosine_ramp_1d(n, rising, device, dtype):
+    """Raised-cosine ramp of length n in (0, 1); rising=True goes small→1, else 1→small."""
+    if n <= 0:
+        return torch.ones(0, device=device, dtype=dtype)
+    if n == 1:
+        return torch.ones(1, device=device, dtype=dtype)
+    t = torch.linspace(0.0, math.pi, n, device=device, dtype=dtype)
+    if rising:
+        ramp = 0.5 - 0.5 * torch.cos(t)
+    else:
+        ramp = 0.5 + 0.5 * torch.cos(t)
+    return ramp.clamp_min_(1e-6)
+
+
+def _tile_blend_weights_2d(tile_out_h, tile_out_w, scale_factor, top_lr, left_lr, bottom_lr, right_lr,
+                           canvas_h_lr, canvas_w_lr, overlap_lr, device, dtype):
+    """
+    Per-tile multiplicative weights (cosine ramps) on sides that border another LR tile.
+    Canvas edges stay at 1 so borders are not dimmed. Overlap depth follows tile_overlap in LR.
+    """
+    overlap_lr = max(0, int(overlap_lr))
+    if overlap_lr == 0:
+        return torch.ones(tile_out_h, tile_out_w, device=device, dtype=dtype)
+    ov = min(overlap_lr * scale_factor, tile_out_h, tile_out_w)
+    if ov <= 0:
+        return torch.ones(tile_out_h, tile_out_w, device=device, dtype=dtype)
+    # Keep top/bottom (or left/right) ramps from overlapping on very small HR tiles.
+    ov_h = min(ov, tile_out_h // 2) if (top_lr > 0 and bottom_lr < canvas_h_lr) else min(ov, tile_out_h)
+    ov_w = min(ov, tile_out_w // 2) if (left_lr > 0 and right_lr < canvas_w_lr) else min(ov, tile_out_w)
+    wv = torch.ones(tile_out_h, device=device, dtype=dtype)
+    wh = torch.ones(tile_out_w, device=device, dtype=dtype)
+    if top_lr > 0:
+        wv[:ov_h] *= _cosine_ramp_1d(ov_h, True, device, dtype)
+    if bottom_lr < canvas_h_lr:
+        wv[-ov_h:] *= _cosine_ramp_1d(ov_h, False, device, dtype)
+    if left_lr > 0:
+        wh[:ov_w] *= _cosine_ramp_1d(ov_w, True, device, dtype)
+    if right_lr < canvas_w_lr:
+        wh[-ov_w:] *= _cosine_ramp_1d(ov_w, False, device, dtype)
+    return wv[:, None] * wh[None, :]
+
+
 def _run_tiled(model, lr_tensor, scale_factor, tile_size=None, tile_overlap=32):
     scale_factor = _normalize_scale_factor(scale_factor)
     _, _, height, width = lr_tensor.shape
     if tile_size is None or (height <= tile_size and width <= tile_size):
         return _unwrap_model_output(model(lr_tensor))
-    stride = max(1, tile_size - tile_overlap)
+    tile_size = int(tile_size)
+    if tile_size < 1:
+        return _unwrap_model_output(model(lr_tensor))
+    # LR overlap must be < tile_size so stride = tile_size - overlap is >= 1 (avoids max(1, neg)=1 blowup).
+    overlap_lr = max(0, min(int(tile_overlap), tile_size - 1))
+    stride = tile_size - overlap_lr
     output = None
     weight = None
     for top in range(0, height, stride):
@@ -195,9 +242,25 @@ def _run_tiled(model, lr_tensor, scale_factor, tile_size=None, tile_overlap=32):
             out_left = left * scale_factor
             out_bottom = out_top + tile_output.shape[-2]
             out_right = out_left + tile_output.shape[-1]
-            output[:, :, out_top:out_bottom, out_left:out_right] += tile_output
-            weight[:, :, out_top:out_bottom, out_left:out_right] += 1
-    return output / weight.clamp_min_(1)
+            blend = _tile_blend_weights_2d(
+                tile_output.shape[-2],
+                tile_output.shape[-1],
+                scale_factor,
+                top,
+                left,
+                bottom,
+                right,
+                height,
+                width,
+                overlap_lr,
+                tile_output.device,
+                tile_output.dtype,
+            )
+            blend = blend.view(1, 1, blend.shape[0], blend.shape[1])
+            weighted = tile_output * blend
+            output[:, :, out_top:out_bottom, out_left:out_right] += weighted
+            weight[:, :, out_top:out_bottom, out_left:out_right] += blend
+    return output / weight.clamp_min_(1e-6)
 
 
 @torch.inference_mode()
