@@ -168,15 +168,6 @@ def image_to_tpgsr_tensor(image_bgr, use_mask):
     return torch.from_numpy(np.ascontiguousarray(array)).float().unsqueeze(0)
 
 
-def tpgsr_output_to_bgr(restored_tensor):
-    """Convert TSRN tanh output to a uint8 BGR image."""
-    restored_tensor = restored_tensor[:, :3].clamp_(-1.0, 1.0)
-    restored_tensor = (restored_tensor + 1.0) * 0.5
-    restored_np = restored_tensor[0].detach().cpu().permute(1, 2, 0).numpy()
-    restored_rgb = (restored_np * 255.0).round().astype(np.uint8)
-    return cv2.cvtColor(restored_rgb, cv2.COLOR_RGB2BGR)
-
-
 def _run_tiled(model, lr_tensor, scale_factor, tile_size=None, tile_overlap=32):
     scale_factor = _normalize_scale_factor(scale_factor)
     _, _, height, width = lr_tensor.shape
@@ -210,24 +201,20 @@ def _run_tiled(model, lr_tensor, scale_factor, tile_size=None, tile_overlap=32):
 
 
 @torch.inference_mode()
-def restore_image_with_tpgsr(
-    model,
-    image_bgr,
-    device,
-    scale_factor,
-    use_mask=True,
-    tile_size=512,
-    tile_overlap=32,
-    pre_downscale=True,
-):
+def restore_image_with_tpgsr(model, image_bgr, device, scale_factor, use_mask=True, tile_size=512, tile_overlap=32):
     scale_factor = _normalize_scale_factor(scale_factor)
     original_height, original_width = image_bgr.shape[:2]
-    # TSRN checkpoints are xN SR models, so full-resolution benchmark scenes need
-    # an explicit LR projection before restoration unless the caller already did it.
-    degraded_lr = downscale_for_tpgsr(image_bgr, scale_factor) if pre_downscale else image_bgr
+    degraded_lr = downscale_for_tpgsr(image_bgr, scale_factor)
     lr_tensor = image_to_tpgsr_tensor(degraded_lr, use_mask=use_mask).to(device)
     restored = _run_tiled(model, lr_tensor, scale_factor=scale_factor, tile_size=tile_size, tile_overlap=tile_overlap)
-    restored_bgr = tpgsr_output_to_bgr(restored)
-    if restored_bgr.shape[0] != original_height or restored_bgr.shape[1] != original_width:
+    restored = restored[:, :3].clamp_(0.0, 1.0)
+    restored_np = restored[0].detach().cpu().permute(1, 2, 0).numpy()
+    restored_rgb = (restored_np * 255.0).round().astype(np.uint8)
+    restored_bgr = cv2.cvtColor(restored_rgb, cv2.COLOR_RGB2BGR)
+    if restored_bgr.shape[0] < original_height or restored_bgr.shape[1] < original_width:
         restored_bgr = cv2.resize(restored_bgr, (original_width, original_height), interpolation=cv2.INTER_CUBIC)
+    else:
+        restored_bgr = restored_bgr[:original_height, :original_width]
+        if restored_bgr.shape[0] != original_height or restored_bgr.shape[1] != original_width:
+            restored_bgr = cv2.resize(restored_bgr, (original_width, original_height), interpolation=cv2.INTER_CUBIC)
     return restored_bgr
