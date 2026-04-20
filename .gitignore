@@ -1,0 +1,42 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+
+# Virtual envs
+venv/
+.venv/
+env/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
+
+# Caches
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# Data and artifacts
+data/
+artifacts/
+outputs/
+logs/
+
+# Model weights and checkpoints (ignore all .pth/.pt/ckpt under any weights/ or models/ folder)
+**/weights/*.pth
+**/weights/*.pt
+**/weights/*.ckpt
+**/models/*.pth
+**/models/*.pt
+**/checkpoints/*
+*.pth
+*.pt
+*.ckpt
+
+# Pickles and caches
+*.pkl
+*.pickle
