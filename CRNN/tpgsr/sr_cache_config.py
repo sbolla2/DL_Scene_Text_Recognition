@@ -19,7 +19,7 @@ import torch
 
 class SRCacheConfig:
     # ---- TSRN checkpoint ----
-    TSRN_CHECKPOINT_PATH = '/content/drive/MyDrive/tpgsr_project/tsrn_heavy_best.pth'
+    TSRN_CHECKPOINT_PATH = '/content/weights/tsrn_heavy_best.pth'
     TPG_CHECKPOINT_PATH = '/content/weights/crnn_tpg_clean_v2_best.pth'
 
     # ---- SR output location ----
