@@ -78,10 +78,10 @@ The evaluation scripts reload the fine-tuned recognizer, run on the SR cache tes
 
 ### Notebooks
 
-- [STR_AllModels_Clean.ipynb](STR_AllModels_Clean.ipynb): baseline notebook that downloads data, builds clean crop caches, trains/evaluates CRNN and TRBA flows, and includes an SVTRv2 section built on OpenOCR.
-- [CRNN/TPGSR_CRNN_HeavyDegradation.ipynb](CRNN/TPGSR_CRNN_HeavyDegradation.ipynb): focused TPGSR-aided CRNN heavy-degradation workflow built on top of the baseline notebook.
-- [TRBA/TPGSR_TRBA_HeavyDegradation.ipynb](TRBA/TPGSR_TRBA_HeavyDegradation.ipynb): focused TPGSR-aided TRBA heavy-degradation workflow built on top of the baseline notebook.
-- [SVTR/TPGSR_SVTRv2_HeavyDegradation.ipynb](SVTR/TPGSR_SVTRv2_HeavyDegradation.ipynb): focused TPGSR-aided SVTRv2 heavy-degradation workflow built on top of the baseline notebook.
+- [STR_AllModels_Clean.ipynb](STR_AllModels_Clean.ipynb): This is a reference (not baseline) notebook that downloads data, builds clean crop caches, trains/evaluates CRNN and TRBA flows, and includes an SVTRv2 section built on OpenOCR. It shows how STR models work on clean scene text image inputs.
+- [CRNN/TPGSR_CRNN_HeavyDegradation.ipynb](CRNN/TPGSR_CRNN_HeavyDegradation.ipynb): focused TPGSR-aided CRNN heavy-degradation workflow built on top of the reference notebook.
+- [TRBA/TPGSR_TRBA_HeavyDegradation.ipynb](TRBA/TPGSR_TRBA_HeavyDegradation.ipynb): focused TPGSR-aided TRBA heavy-degradation workflow built on top of the reference notebook.
+- [SVTR/TPGSR_SVTRv2_HeavyDegradation.ipynb](SVTR/TPGSR_SVTRv2_HeavyDegradation.ipynb): focused TPGSR-aided SVTRv2 heavy-degradation workflow built on top of the reference notebook.
 
 ### Python modules
 
@@ -159,7 +159,7 @@ For a local environment, start with a Python 3.10+ virtual environment and insta
 
 Use the notebooks, not the Python modules directly.
 
-1. Import to Google Drive for Colab: [STR_AllModels_Clean.ipynb](STR_AllModels_Clean.ipynb) for the baseline integrated workflow, or pick one of the model-specific TPGSR-aided notebooks under [CRNN](CRNN), [TRBA](TRBA), or [SVTR](SVTR).
+1. Import to Google Drive for Colab: [STR_AllModels_Clean.ipynb](STR_AllModels_Clean.ipynb) for the reference integrated workflow on clean inputs, or pick one of the model-specific TPGSR-aided and degradation-applied notebooks under [CRNN](CRNN), [TRBA](TRBA), or [SVTR](SVTR).
 2. Run the first cell first to mount the notebook to mount Google Drive in Colab.
 3. If running a model-specific notebook, create the /tpgsr and /weights directories at /content/ path and add the corresponding files to it from this repo.
 4. Run the notebook.
