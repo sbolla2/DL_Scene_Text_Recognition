@@ -10,6 +10,13 @@ The project combines three recognizer families:
 - TRBA: TPS-ResNet-BiLSTM-Attn recognizer adapted for the same multi-phase TPGSR workflow.
 - SVTRv2: OpenOCR-based recognizer fine-tuned on the shared crop pipeline and, optionally, TRBA-guided SR outputs.
 
+### Demo notebook (no edits required)
+
+If you just want to see the pipeline end-to-end without changing any code, open the demo notebook and run it top to bottom.
+
+1. Open [STR_Demo.ipynb](STR_Demo.ipynb) in Jupyter or Colab.
+2. Run all cells in order. No edits or parameter changes are needed.
+
 ## Repository layout
 
 ```text
@@ -156,10 +163,3 @@ Use the notebooks, not the Python modules directly.
 2. Run the first cell first to mount the notebook to mount Google Drive in Colab.
 3. If running a model-specific notebook, create the /tpgsr and /weights directories at /content/ path and add the corresponding files to it from this repo.
 4. Run the notebook.
-
-### Demo notebook (no edits required)
-
-If you just want to see the pipeline end-to-end without changing any code, open the demo notebook and run it top to bottom.
-
-1. Open [STR_Demo.ipynb](STR_Demo.ipynb) in Jupyter or Colab.
-2. Run all cells in order. No edits or parameter changes are needed.
