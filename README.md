@@ -78,7 +78,7 @@ The evaluation scripts reload the fine-tuned recognizer, run on the SR cache tes
 
 ### Notebooks
 
-- [STR_AllModels_Clean.ipynb](STR_AllModels_Clean.ipynb): This is a reference (not baseline) notebook that downloads data, builds clean crop caches, trains/evaluates CRNN and TRBA flows, and includes an SVTRv2 section built on OpenOCR. It shows how STR models work on clean scene text image inputs.
+- [STR_AllModels_Clean.ipynb](STR_AllModels_Clean.ipynb): This is a reference (not baseline) notebook that downloads data, builds clean crop caches, trains/evaluates CRNN and TRBA flows, and includes an SVTRv2 section built on OpenOCR. It shows how STR models work on clean scene text image inputs as intended.
 - [CRNN/TPGSR_CRNN_HeavyDegradation.ipynb](CRNN/TPGSR_CRNN_HeavyDegradation.ipynb): focused TPGSR-aided CRNN heavy-degradation workflow built on top of the reference notebook.
 - [TRBA/TPGSR_TRBA_HeavyDegradation.ipynb](TRBA/TPGSR_TRBA_HeavyDegradation.ipynb): focused TPGSR-aided TRBA heavy-degradation workflow built on top of the reference notebook.
 - [SVTR/TPGSR_SVTRv2_HeavyDegradation.ipynb](SVTR/TPGSR_SVTRv2_HeavyDegradation.ipynb): focused TPGSR-aided SVTRv2 heavy-degradation workflow built on top of the reference notebook.
