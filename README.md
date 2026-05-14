@@ -4,6 +4,8 @@
 
 This repository contains notebook-first experiments for scene text recognition under heavy degradation, centered on a text-prior-guided super-resolution pipeline referred to in the code as TPGSR.
 
+A detailed report of this project can be found within the Project_Report.pdf file.
+
 The project combines three recognizer families:
 
 - CRNN: VGG + BiLSTM + CTC recognizer used both as a baseline and as a frozen text prior.
